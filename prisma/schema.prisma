@@ -1,0 +1,44 @@
+generator client {
+    provider = "prisma-client-js"
+    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+    output = "/home/ubuntu/ai_assessment_tool/nextjs_space/node_modules/.prisma/client"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Assessment {
+  id                String   @id @default(cuid())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Mandatory contact fields
+  fullName          String
+  position          String
+  companyName       String
+  companyUrl        String
+  email             String?
+  
+  // Optional contact fields
+  phoneNumber       String?
+  additionalInfo    String?
+  
+  // Assessment responses
+  aiAwareness       String   // Current AI usage/awareness level
+  businessProcesses String   // Processes that could benefit from AI
+  budgetRange       String   // Budget constraints
+  teamSize          String   // Technical capabilities/team size
+  riskLevel         String?  // Risk assessment level
+  painPoints        String   // Specific challenges
+  industry          String   // Industry sector
+  
+  // Results
+  readinessScore    Int      // AI readiness score (0-100)
+  recommendations   String   // JSON string of AI solution recommendations
+  reportGenerated   Boolean  @default(false)
+  emailSent         Boolean  @default(false)
+  
+  @@map("assessments")
+}
