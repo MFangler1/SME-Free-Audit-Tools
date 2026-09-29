@@ -1,100 +1,117 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    /* Professional Navy + Teal Palette */
-    --primary: 213 56% 23%; /* Navy #1A365D */
-    --primary-foreground: 0 0% 100%; /* White */
-    --secondary: 173 83% 29%; /* Teal #0D9488 */
-    --secondary-foreground: 0 0% 100%; /* White */
-    --accent: 173 83% 29%; /* Teal accent #0D9488 */
-    --accent-foreground: 0 0% 100%;
-    --muted: 210 40% 96%; /* Very light gray */
-    --muted-foreground: 213 30% 40%;
-    --card: 0 0% 100%;
-    --card-foreground: 213 56% 23%;
-    --border: 213 31% 91%;
-    --input: 213 31% 91%;
-    --ring: 173 83% 29%;
-    --background: 0 0% 100%;
-    --foreground: 213 56% 23%;
-    
-    /* Extended palette for design system */
-    --navy: #1A365D;
-    --navy-light: #2D4A7C;
-    --navy-dark: #0F2340;
-    --teal: #0D9488;
-    --teal-light: #14B8A6;
-    --teal-dark: #0A766D;
-    --gray-50: #F9FAFB;
-    --gray-100: #F3F4F6;
-    --gray-200: #E5E7EB;
-    --gray-600: #4B5563;
-    --gray-800: #1F2937;
-    --success: #059669;
-    --warning: #D97706;
-    --error: #DC2626;
-  }
+:root {
+  --primary-teal: #0D9488;
+  --primary-teal-dark: #0F766E;
+  --accent-coral: #0D9488;
+  --accent-coral-dark: #0F766E;
+  --navy-dark: #1E3A5F;
+  --navy-darker: #162D4D;
+  --text-dark: #1F2937;
+  --text-gray: #6B7280;
+  --text-light: #9CA3AF;
+  --bg-light-teal: #F0FDFA;
+  --bg-cream: #FFFBF5;
 }
 
-@layer utilities {
-  .animate-count-up {
-    animation: countUp 2s ease-out forwards;
-  }
-  
-  @keyframes countUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  /* Pulse animation for CTAs */
-  .animate-pulse-soft {
-    animation: pulseSoft 2s ease-in-out infinite;
-  }
-  
-  @keyframes pulseSoft {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.85; }
-  }
+body {
+  font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+  color: var(--text-dark);
+  background-color: #ffffff;
+}
+
+[data-hydration-error] {
+  display: none !important;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-teal);
+  border-radius: 4px;
 }
 
 html {
   scroll-behavior: smooth;
 }
 
-/* Navy to Teal gradient */
-.gradient-bg {
-  background: linear-gradient(135deg, #1A365D 0%, #0D9488 100%);
+.card-hover {
+  transition: all 0.3s ease;
 }
 
-.gradient-text {
-  background: linear-gradient(135deg, #1A365D 0%, #0D9488 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -8px rgba(13, 148, 136, 0.15);
 }
 
-/* Teal gradient for CTAs */
 .gradient-teal {
-  background: linear-gradient(135deg, #0D9488 0%, #14B8A6 100%);
+  background: linear-gradient(135deg, var(--primary-teal) 0%, var(--primary-teal-dark) 100%);
 }
 
-/* Navy gradient for headers */
 .gradient-navy {
-  background: linear-gradient(135deg, #1A365D 0%, #2D4A7C 100%);
+  background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy-darker) 100%);
 }
 
-/* Research badge styling */
-.research-badge {
-  background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%);
-  border: 1px solid #059669;
+.btn-coral {
+  background-color: var(--accent-coral);
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.btn-coral:hover {
+  background-color: var(--accent-coral-dark);
+  transform: translateY(-1px);
+}
+
+.btn-teal {
+  background-color: var(--primary-teal);
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.btn-teal:hover {
+  background-color: var(--primary-teal-dark);
+  transform: translateY(-1px);
+}
+
+.icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--bg-light-teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-teal);
+}
+
+.icon-circle-solid {
+  background-color: var(--primary-teal);
+  color: white;
+}
+
+.badge-outline {
+  border: 1.5px solid var(--primary-teal);
+  color: var(--primary-teal);
+  background-color: white;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.section-light-teal {
+  background-color: var(--bg-light-teal);
+}
+
+.section-cream {
+  background-color: var(--bg-cream);
 }
