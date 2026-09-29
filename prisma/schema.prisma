@@ -12,6 +12,7 @@ model Audit {
   url                   String
   email                 String
   businessName          String?
+  contactName           String?
   score                 Int?
   confidenceLevel       String?
   aiDescription         String?  @db.Text
@@ -19,7 +20,7 @@ model Audit {
   reportHtml            String?  @db.Text
   rawCrawlData          Json?
   stage2InterestClicked Boolean  @default(false)
-  status                String   @default("pending")
+  status                String   @default("pending") // pending, processing, completed, failed
   errorMessage          String?
   ipAddress             String?
   createdAt             DateTime @default(now())

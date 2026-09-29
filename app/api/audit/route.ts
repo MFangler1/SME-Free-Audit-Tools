@@ -9,6 +9,7 @@ export const maxDuration = 60;
 interface AuditRequestBody {
   url: string;
   email: string;
+  contactName?: string;
   businessName?: string;
 }
 
@@ -26,24 +27,33 @@ function validateUrl(url: string): boolean {
 }
 
 async function sendAdminNotification(auditData: {
+  id?: string;
   url: string;
   email: string;
+  contactName?: string;
   businessName?: string;
   score?: number;
 }) {
   try {
     const appUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
     const appName = 'AI Visibility Audit';
+    const reportUrl = auditData.id ? `${appUrl}/report/${auditData.id}` : appUrl;
 
     const htmlBody = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #008080; border-bottom: 2px solid #008080; padding-bottom: 10px;">
           New AI Visibility Audit Submitted
         </h2>
+        <div style="background: #f0fdfa; padding: 24px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #0D9488;">
+          ${auditData.businessName ? `<p style="margin: 0 0 6px; font-size: 22px; font-weight: bold; color: #0F766E;">${auditData.businessName}</p>` : ''}
+          ${auditData.contactName ? `<p style="margin: 0 0 6px; font-size: 18px; font-weight: bold; color: #1F2937;">${auditData.contactName}</p>` : ''}
+          <p style="margin: 0; font-size: 18px; font-weight: bold; color: #1F2937;"><a href="mailto:${auditData.email}" style="color: #0D9488; text-decoration: none;">${auditData.email}</a></p>
+        </div>
+        <div style="text-align: center; margin: 24px 0;">
+          <a href="${reportUrl}" style="background: #0D9488; color: #ffffff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block;">View This Client's Report</a>
+        </div>
         <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
           <p style="margin: 10px 0;"><strong>Website URL:</strong> <a href="${auditData.url}">${auditData.url}</a></p>
-          <p style="margin: 10px 0;"><strong>Email:</strong> <a href="mailto:${auditData.email}">${auditData.email}</a></p>
-          ${auditData.businessName ? `<p style="margin: 10px 0;"><strong>Business Name:</strong> ${auditData.businessName}</p>` : ''}
           ${auditData.score !== undefined ? `<p style="margin: 10px 0;"><strong>AI Visibility Score:</strong> ${auditData.score}/100</p>` : ''}
         </div>
         <p style="color: #666; font-size: 12px;">
@@ -144,8 +154,9 @@ export async function POST(request: NextRequest) {
 
       try {
         const body: AuditRequestBody = await request.json();
-        const { url, email, businessName } = body;
+        const { url, email, contactName, businessName } = body;
 
+        // Validation
         if (!url || !validateUrl(url)) {
           sendProgress('error', 'Please provide a valid website URL', 0);
           controller.close();
@@ -158,6 +169,7 @@ export async function POST(request: NextRequest) {
           return;
         }
 
+        // Check for duplicate audit within 24 hours
         const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
         const existingAudit = await prisma.audit.findFirst({
           where: {
@@ -169,6 +181,7 @@ export async function POST(request: NextRequest) {
         });
 
         if (existingAudit) {
+          // Return cached result
           sendProgress('completed', 'Retrieved cached audit', 100, {
             id: existingAudit.id,
             url: existingAudit.url,
@@ -183,18 +196,21 @@ export async function POST(request: NextRequest) {
           return;
         }
 
+        // Create initial audit record
         sendProgress('processing', 'Starting audit...', 5);
         
         const audit = await prisma.audit.create({
           data: {
             url,
             email,
+            contactName: contactName || null,
             businessName: businessName || null,
             status: 'processing',
             ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || null,
           },
         });
 
+        // Crawl website
         sendProgress('processing', 'Crawling your website...', 10);
         
         const crawlResult = await crawlWebsite(url, (message, progress) => {
@@ -216,16 +232,19 @@ export async function POST(request: NextRequest) {
           return;
         }
 
+        // Analyze with LLM
         sendProgress('processing', 'Analyzing AI visibility...', 55);
         
         const analysis = await analyzeWithLLM(crawlResult.pages, businessName);
 
         sendProgress('processing', 'Generating your report...', 85);
 
+        // Extract business name from analysis if not provided
         const detectedBusinessName = businessName || 
           crawlResult.pages[0]?.title?.split('|')[0]?.split('-')[0]?.trim() || 
           new URL(url).hostname;
 
+        // Update audit with results
         await prisma.audit.update({
           where: { id: audit.id },
           data: {
@@ -243,13 +262,17 @@ export async function POST(request: NextRequest) {
           },
         });
 
+        // Send admin notification
         sendAdminNotification({
+          id: audit.id,
           url,
           email,
+          contactName,
           businessName: detectedBusinessName,
           score: analysis.score,
         });
 
+        // Send visitor confirmation email
         sendVisitorConfirmation({
           email,
           url,
@@ -258,6 +281,7 @@ export async function POST(request: NextRequest) {
           aiDescription: analysis.ai_description,
         });
 
+        // Return result
         sendProgress('completed', 'Audit complete!', 100, {
           id: audit.id,
           url,
